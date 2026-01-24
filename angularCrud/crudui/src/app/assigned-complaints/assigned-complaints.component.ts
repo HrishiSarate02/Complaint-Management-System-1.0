@@ -24,13 +24,13 @@ export class AssignedComplaintsComponent {
     private _activatedRoute: ActivatedRoute,
     private storageService: StorageService,
     private dialog: MatDialog
-  ) {}
+  ) { }
   // Called when status is changed in the UI
   onStatusChange(complaint: Complain, previousStatus: string, newStatus: string) {
     if (newStatus === 'Done') {
       const dialogRef = this.dialog.open(ImageUploadDialogComponent, {
         width: '400px',
-        data: { }
+        data: {}
       });
       dialogRef.afterClosed().subscribe(result => {
         complaint.status = newStatus;
@@ -55,21 +55,40 @@ export class AssignedComplaintsComponent {
   }
 
   ngOnInit(): void {
-    this.fetchComplaintsByStatus('Assigned');
     this.isLoggedIn = !!this.storageService.getToken();
     if (this.isLoggedIn) {
       const user = this.storageService.getUser();
       this.roles = user.roles;
       this.showProducts = this.roles.includes('ROLE_ADMIN');
+
+      // Admin sees all assigned complaints, User sees only theirs
+      if (this.showProducts) {
+        this.fetchComplaintsByStatus('Assigned');
+      } else {
+        this.fetchComplaintsByStatusAndEmail('Assigned', user.email);
+      }
     }
   }
 
-  // Method to fetch complaints by status
+  // Method to fetch complaints by status (Admin)
   fetchComplaintsByStatus(status: string): void {
     this._service.fetchComplaintsByStatusFromRemote(status).subscribe({
       next: (data) => {
         console.log('Complaints data received');
-        this.complaints = data; // Assign fetched data to the complaints array
+        this.complaints = data;
+      },
+      error: (error) => {
+        console.log('Error occurred while fetching complaints', error);
+      },
+    });
+  }
+
+  // Method to fetch complaints by status and email (User)
+  fetchComplaintsByStatusAndEmail(status: string, email: string): void {
+    this._service.fetchComplaintsByStatusAndEmail(status, email).subscribe({
+      next: (data) => {
+        console.log('Own complaints received');
+        this.complaints = data;
       },
       error: (error) => {
         console.log('Error occurred while fetching complaints', error);

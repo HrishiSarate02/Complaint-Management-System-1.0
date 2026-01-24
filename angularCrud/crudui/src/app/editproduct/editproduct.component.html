@@ -3,35 +3,39 @@
 
   <form #adduserform="ngForm" (ngSubmit)="updateProductformsubmit()">
 
-   <!-- Complaint Category Dropdown -->
-   <div class="form-group">
-    <label for="complainCategory" class="font-weight-bold">Complain Category:</label>
-    <select class="form-control" id="complainCategory" required [(ngModel)]="complaint.complainSubject" name="complainCategory">
-      <option value="Electrical">Electrical</option>
-      <option value="Plumbing">Plumbing</option>
-      <option value="Carpentry">Carpentry</option>
-      <option value="Civil/Structural">Civil/Structural</option>
-      <option value="Housekeeping and Cleaning">Housekeeping and Cleaning</option>
-      <option value="IT and Network">IT and Network</option>
-      <option value="Painting and Aesthetics">Painting and Aesthetics</option>
-      <option value="Equipment Maintenance">Equipment Maintenance</option>
-    </select>
-  </div>
+    <!-- Complaint Category Dropdown -->
+    <div class="form-group">
+      <label for="complainCategory" class="font-weight-bold">Complain Category:</label>
+      <select class="form-control" id="complainCategory" required [(ngModel)]="complaint.complainSubject"
+        name="complainCategory">
+        <option value="Electrical">Electrical</option>
+        <option value="Plumbing">Plumbing</option>
+        <option value="Carpentry">Carpentry</option>
+        <option value="Civil/Structural">Civil/Structural</option>
+        <option value="Housekeeping and Cleaning">Housekeeping and Cleaning</option>
+        <option value="IT and Network">IT and Network</option>
+        <option value="Painting and Aesthetics">Painting and Aesthetics</option>
+        <option value="Equipment Maintenance">Equipment Maintenance</option>
+      </select>
+    </div>
 
 
     <div class="form-group">
       <label for="complainDescription" class="font-weight-bold">Complain Description:</label>
-      <textarea class="form-control" id="complainDescription" required [(ngModel)]="complaint.complainDescription" name="complainDescription"></textarea>
+      <textarea class="form-control" id="complainDescription" required [(ngModel)]="complaint.complainDescription"
+        name="complainDescription"></textarea>
     </div>
 
     <div class="form-group">
       <label for="roleOfComplainer" class="font-weight-bold">Role of Complainer:</label>
-      <input type="text" class="form-control" id="roleOfComplainer" required [(ngModel)]="complaint.roleOfComplainer" name="roleOfComplainer">
+      <input type="text" class="form-control" id="roleOfComplainer" required [(ngModel)]="complaint.roleOfComplainer"
+        name="roleOfComplainer">
     </div>
 
-     <div class="form-group">
+    <div class="form-group">
       <label for="mobileNumber" class="font-weight-bold">Mobile Number:</label>
-      <input type="text" class="form-control" id="mobileNumber" required [(ngModel)]="complaint.mobileNumber" name="mobileNumber">
+      <input type="text" class="form-control" id="mobileNumber" required [(ngModel)]="complaint.mobileNumber"
+        name="mobileNumber">
     </div>
 
     <div class="form-group">
@@ -56,23 +60,27 @@
 
     <div class="form-group">
       <label for="imageOfSubject" class="font-weight-bold">Image of Subject:</label>
-      <input type="text" class="form-control" id="imageOfSubject" [(ngModel)]="complaint.imageOfSubject" name="imageOfSubject">
+      <input type="text" class="form-control" id="imageOfSubject" [(ngModel)]="complaint.imageOfSubject"
+        name="imageOfSubject">
     </div>
 
+    <!-- Email (Read-only for Users, Editable for Admin) -->
     <div class="form-group">
       <label for="email" class="font-weight-bold">Email:</label>
-      <input type="email" class="form-control" id="email" required [(ngModel)]="complaint.email" name="email">
+      <input type="email" class="form-control" id="email" required [(ngModel)]="complaint.email" name="email"
+        [readonly]="!showProducts" [style.background-color]="!showProducts ? '#f0f0f0' : ''"
+        [style.cursor]="!showProducts ? 'not-allowed' : ''"
+        [title]="!showProducts ? 'Email cannot be changed' : 'Enter email address'">
+      <small class="form-text text-muted" *ngIf="!showProducts">
+        <i class="bi bi-lock-fill"></i> Email cannot be changed by users.
+      </small>
     </div>
 
     <!-- Priority Toggle -->
-     <div class="form-group">
+    <div class="form-group">
       <label class="font-weight-bold">Priority:</label>
       <label class="switch">
-        <input 
-          type="checkbox" 
-          [(ngModel)]="isHighPriority" 
-          name="priority" 
-          (change)="togglePriority()">
+        <input type="checkbox" [(ngModel)]="isHighPriority" name="priority" (change)="togglePriority()">
         <span class="slider round"></span>
       </label>
       <span class="ml-2">{{ isHighPriority ? 'High' : 'Low' }}</span>
@@ -81,7 +89,8 @@
 
     <div class="form-group" *ngIf="showProducts">
       <label for="reason" class="font-weight-bold">Reason for Pending Status:</label>
-      <textarea class="form-control" id="reason" [(ngModel)]="complaint.reason" name="reason" placeholder="Enter reason if status is Pending"></textarea>
+      <textarea class="form-control" id="reason" [(ngModel)]="complaint.reason" name="reason"
+        placeholder="Enter reason if status is Pending"></textarea>
     </div>
 
     <div class="form-group" *ngIf="showProducts">
@@ -91,8 +100,10 @@
 
 
     <div class="text-center mt-4">
-      <button type="submit" class="btn btn-success glowing-button update-button" (click)=updateProductformsubmit() >Update</button>&nbsp;&nbsp;&nbsp;&nbsp;
-      <button class="btn btn-info view-button glowing-button" (click)="goToViewProduct(complaint.complainId)">View</button>&nbsp;&nbsp;&nbsp;&nbsp;
+      <button type="submit" class="btn btn-success glowing-button update-button"
+        (click)=updateProductformsubmit()>Update</button>&nbsp;&nbsp;&nbsp;&nbsp;
+      <button class="btn btn-info view-button glowing-button"
+        (click)="goToViewProduct(complaint.complainId)">View</button>&nbsp;&nbsp;&nbsp;&nbsp;
       <button type="button" class="btn btn-warning glowing-button back-button" (click)="gotolist()">BACK</button>
     </div>
   </form>

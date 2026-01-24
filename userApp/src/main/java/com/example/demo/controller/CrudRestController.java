@@ -16,10 +16,10 @@ import java.util.*;
 @CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/user")
 public class CrudRestController {
-     
+
     @Autowired
     private CrudService service;
-    
+
     @Autowired
     private EmailService em;
 
@@ -29,7 +29,17 @@ public class CrudRestController {
         products = service.fetchcomplainList();
         return products;
     }
-    
+
+    // New endpoint: Get complaints by email (for regular users)
+    @GetMapping("/getcomplainlist/byemail")
+    public ResponseEntity<List<User>> fetchComplainListByEmail(@RequestParam String email) {
+        List<User> complaints = service.fetchComplainListByEmail(email);
+        if (complaints.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(complaints);
+    }
+
     @GetMapping("/getcomplaints/status/{status}")
     public ResponseEntity<List<User>> fetchComplaintsByStatus(@PathVariable String status) {
         List<User> complaints = service.fetchComplaintsByStatus(status);
@@ -39,27 +49,39 @@ public class CrudRestController {
         return ResponseEntity.ok(complaints);
     }
 
+    // New endpoint: Get complaints by status and email (for regular users)
+    @GetMapping("/getcomplaints/status/{status}/byemail")
+    public ResponseEntity<List<User>> fetchComplaintsByStatusAndEmail(
+            @PathVariable String status,
+            @RequestParam String email) {
+        List<User> complaints = service.fetchComplaintsByStatusAndEmail(status, email);
+        if (complaints.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(complaints);
+    }
+
     @PostMapping("/addcomplain")
     public User saveProduct(@RequestBody User user) {
         // Set status to "Logged" automatically when a new complaint is added
         user.setStatus("Logged");
-        
+
         String complainName = user.getComplainSubject();
         String complainerRole = user.getRoleOfComplainer();
         String complainerDept = user.getDept();
 
         // Notify the user who added the complaint
-        String userBody = "Hello " + complainerRole + " from " + complainerDept + 
-                          " department. Your complain of '" + complainName + 
-                          "' has been sent successfully to the Complain Department of VJTI.";
+        String userBody = "Hello " + complainerRole + " from " + complainerDept +
+                " department. Your complain of '" + complainName +
+                "' has been sent successfully to the Complain Department of VJTI.";
         em.sendSimpleMail(user.getEmail(), userBody, "Complain Sent Successfully");
 
         // Notify the admin about the new complaint
-        String adminEmail = "snehalmohite54321@gmail.com"; 
-        String adminBody = "A new complaint has been added by a " + complainerRole + 
-                           " from the " + complainerDept + " department. " +
-                           "\n\nComplain Subject: " + complainName + 
-                           "\n\nPlease take necessary action.";
+        String adminEmail = "snehalmohite54321@gmail.com";
+        String adminBody = "A new complaint has been added by a " + complainerRole +
+                " from the " + complainerDept + " department. " +
+                "\n\nComplain Subject: " + complainName +
+                "\n\nPlease take necessary action.";
         em.sendSimpleMail(adminEmail, adminBody, "New Complain Notification");
 
         // Save the complaint to the database with status set to "Logged"
@@ -75,7 +97,7 @@ public class CrudRestController {
     public String deleteComplainById(@PathVariable int id, @RequestParam String reason) {
         // Fetch the complaint to get the details before deletion
         Optional<User> complainOpt = service.fetchComplainToById(id);
-        
+
         if (!complainOpt.isPresent()) {
             return "Complaint not found!";
         }
@@ -84,18 +106,18 @@ public class CrudRestController {
 
         // Send email to the user about the deletion and the reason
         String userBody = "Dear " + complain.getRoleOfComplainer() + " from " + complain.getDept() +
-                          " department, your complaint titled '" + complain.getComplainSubject() + "' has been deleted.\n" +
-                          "Reason for deletion: " + reason;
+                " department, your complaint titled '" + complain.getComplainSubject() + "' has been deleted.\n" +
+                "Reason for deletion: " + reason;
         em.sendSimpleMail(complain.getEmail(), userBody, "Complaint Deleted");
 
         // Send email to the admin about the deletion
         String adminBody = "The complaint titled '" + complain.getComplainSubject() + "' from the " +
-                           complain.getDept() + " department has been deleted.\n" +
-                           "Complaint details:\n" +
-                           "Complain Subject: " + complain.getComplainSubject() + "\n" +
-                           "Complain Description: " + complain.getComplainDescription() + "\n" +
-                           "Role of Complainer: " + complain.getRoleOfComplainer() + "\n" +
-                           "Reason for Deletion: " + reason;
+                complain.getDept() + " department has been deleted.\n" +
+                "Complaint details:\n" +
+                "Complain Subject: " + complain.getComplainSubject() + "\n" +
+                "Complain Description: " + complain.getComplainDescription() + "\n" +
+                "Role of Complainer: " + complain.getRoleOfComplainer() + "\n" +
+                "Reason for Deletion: " + reason;
         em.sendSimpleMail("snehalmohite54321@gmail.com", adminBody, "Complaint Deleted Notification");
 
         // Perform the actual deletion
@@ -105,7 +127,7 @@ public class CrudRestController {
     @PutMapping("/updatecomplain/{id}")
     public ResponseEntity<String> updateComplain(
             @PathVariable("id") int id,
-            @RequestBody User updatedComplain) {  // Assuming you are using Complain class instead of User
+            @RequestBody User updatedComplain) { // Assuming you are using Complain class instead of User
         Optional<User> existingComplainOpt = service.fetchComplainToById(id);
 
         if (existingComplainOpt.isPresent()) {
@@ -162,7 +184,8 @@ public class CrudRestController {
                 updatedFields.add("Status");
                 existingComplain.setStatus(updatedComplain.getStatus());
             }
-            if (updatedComplain.getCreatedDate() != null && !updatedComplain.getCreatedDate().equals(existingComplain.getCreatedDate())) {
+            if (updatedComplain.getCreatedDate() != null
+                    && !updatedComplain.getCreatedDate().equals(existingComplain.getCreatedDate())) {
                 updatedFields.add("Created Date");
                 existingComplain.setCreatedDate(updatedComplain.getCreatedDate());
             }
@@ -172,14 +195,13 @@ public class CrudRestController {
                 updatedFields.add("Priority");
                 existingComplain.setPriority(updatedComplain.getPriority()); // Update priority
             }
-            
+
             if (updatedComplain.getNote() == null) {
-                existingComplain.setNote("");  // Set to blank
+                existingComplain.setNote(""); // Set to blank
             } else if (!updatedComplain.getNote().equals(existingComplain.getNote())) {
                 updatedFields.add("Note");
                 existingComplain.setNote(updatedComplain.getNote());
             }
-
 
             // Update the complain
             service.updateComplain(existingComplain);
@@ -206,45 +228,44 @@ public class CrudRestController {
         }
     }
 
-    
     @GetMapping("/dashboard-metrics")
     public ResponseEntity<Map<String, Object>> getDashboardMetrics() {
         Map<String, Object> metrics = new HashMap<>();
-        
+
         // Fetch all complaints
         List<User> allComplaints = service.fetchcomplainList();
-        
+
         // Count complaints by status
         long loggedCount = allComplaints.stream().filter(c -> "Logged".equals(c.getStatus())).count();
         long inProgressCount = allComplaints.stream().filter(c -> "Assigned".equals(c.getStatus())).count();
         long doneCount = allComplaints.stream().filter(c -> "Done".equals(c.getStatus())).count();
-        
+
         // Count complaints resolved within a week
         long resolvedWithinWeek = allComplaints.stream()
-            .filter(c -> "Done".equals(c.getStatus()) && 
-                         c.getCreatedDate() != null && 
-                         c.getCreatedDate().plusDays(7).isAfter(LocalDate.now()))
-            .count();
-        
+                .filter(c -> "Done".equals(c.getStatus()) &&
+                        c.getCreatedDate() != null &&
+                        c.getCreatedDate().plusDays(7).isAfter(LocalDate.now()))
+                .count();
+
         // Count complaints resolved after a week
         long resolvedAfterWeek = allComplaints.stream()
-            .filter(c -> "Done".equals(c.getStatus()) && 
-                         c.getCreatedDate() != null && 
-                         c.getCreatedDate().plusDays(7).isBefore(LocalDate.now()))
-            .count();
-        
+                .filter(c -> "Done".equals(c.getStatus()) &&
+                        c.getCreatedDate() != null &&
+                        c.getCreatedDate().plusDays(7).isBefore(LocalDate.now()))
+                .count();
+
         // This week's complaints
         LocalDate startOfWeek = LocalDate.now().with(java.time.DayOfWeek.MONDAY);
         long thisWeekComplaints = allComplaints.stream()
-            .filter(c -> c.getCreatedDate() != null && !c.getCreatedDate().isBefore(startOfWeek))
-            .count();
-        
+                .filter(c -> c.getCreatedDate() != null && !c.getCreatedDate().isBefore(startOfWeek))
+                .count();
+
         // Group complaints by status for the bar chart
         Map<String, Long> complaintsByStatus = new HashMap<>();
         complaintsByStatus.put("Logged", loggedCount);
         complaintsByStatus.put("Assigned", inProgressCount);
         complaintsByStatus.put("Done", doneCount);
-        
+
         // Populate the metrics map
         metrics.put("loggedCount", loggedCount);
         metrics.put("inProgressCount", inProgressCount);
@@ -253,10 +274,9 @@ public class CrudRestController {
         metrics.put("resolvedAfterWeek", resolvedAfterWeek);
         metrics.put("thisWeekComplaints", thisWeekComplaints);
         metrics.put("complaintsByStatus", complaintsByStatus);
-        
+
         return ResponseEntity.ok(metrics);
     }
-
 
     // New endpoint to update the status of a complaint
     @PutMapping("/updatecomplaintsstatus")
@@ -292,17 +312,18 @@ public class CrudRestController {
                 // Send email if status changed
                 if (!oldStatus.equals(newStatus)) {
                     String subject = "Complaint Status Updated";
-                    
+
                     // Email to user
-                    String userBody = "Dear " + savedComplaint.getRoleOfComplainer() + " from " + savedComplaint.getDept() +
-                                      " department, the status of your complaint titled '" + savedComplaint.getComplainSubject() +
-                                      "' has been updated to: " + newStatus;
+                    String userBody = "Dear " + savedComplaint.getRoleOfComplainer() + " from "
+                            + savedComplaint.getDept() +
+                            " department, the status of your complaint titled '" + savedComplaint.getComplainSubject() +
+                            "' has been updated to: " + newStatus;
                     em.sendSimpleMail(savedComplaint.getEmail(), userBody, subject);
 
                     // Email to admin
                     String adminBody = "Complaint titled '" + savedComplaint.getComplainSubject() +
-                                       "' from the " + savedComplaint.getDept() + " department has been updated.\n" +
-                                       "New Status: " + newStatus;
+                            "' from the " + savedComplaint.getDept() + " department has been updated.\n" +
+                            "New Status: " + newStatus;
                     em.sendSimpleMail("snehalmohite54321@gmail.com", adminBody, "Admin Notification: Status Changed");
                 }
             }

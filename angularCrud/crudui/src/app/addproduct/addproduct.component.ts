@@ -13,19 +13,24 @@ import { StorageService } from '../services/storage.service';
 })
 export class AddproductComponent {
   showProducts = false;
-  isLoggedIn= false;
+  isLoggedIn = false;
   private roles: string[] = [];
-  public complaint: Complain = new Complain(0, "", "", "", "", "", 0, 0, "", "", "", "", "", "","");
+  public complaint: Complain = new Complain(0, "", "", "", "", "", 0, 0, "", "", "", "", "", "", "");
 
-  constructor(private _route: Router, private _service: NgserviceService, private storageService: StorageService) {}
+  constructor(private _route: Router, private _service: NgserviceService, private storageService: StorageService) { }
 
   ngOnInit() {
     this.isLoggedIn = !!this.storageService.getToken();
-    
+
     if (this.isLoggedIn) {
       const user = this.storageService.getUser();
       this.roles = user.roles;
       this.showProducts = this.roles.includes('ROLE_ADMIN');
+
+      // Auto-populate email ONLY for regular users (not admin)
+      if (!this.showProducts) {
+        this.complaint.email = user.email;
+      }
     }
   }
 

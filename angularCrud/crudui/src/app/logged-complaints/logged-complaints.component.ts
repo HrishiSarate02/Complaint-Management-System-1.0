@@ -21,20 +21,27 @@ export class LoggedComplaintsComponent implements OnInit {
     private _route: Router,
     private _activatedRoute: ActivatedRoute,
     private storageService: StorageService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    // Fetch complaints with "Logged" status on initialization
-    this.fetchComplaintsByStatus('Logged');
     this.isLoggedIn = !!this.storageService.getToken();
     if (this.isLoggedIn) {
       const user = this.storageService.getUser();
       this.roles = user.roles;
       this.showProducts = this.roles.includes('ROLE_ADMIN');
+
+      // Fetch complaints based on role
+      if (this.showProducts) {
+        // Admin - all logged complaints
+        this.fetchComplaintsByStatus('Logged');
+      } else {
+        // User - only their logged complaints
+        this.fetchComplaintsByStatusAndEmail('Logged', user.email);
+      }
     }
   }
 
-  // Fetch complaints by status
+  // Fetch complaints by status (for Admin)
   fetchComplaintsByStatus(status: string): void {
     this._service.fetchComplaintsByStatusFromRemote(status).subscribe({
       next: (data) => {
@@ -45,6 +52,19 @@ export class LoggedComplaintsComponent implements OnInit {
       }
     });
   }
+
+  // Fetch complaints by status and email (for regular User)
+  fetchComplaintsByStatusAndEmail(status: string, email: string): void {
+    this._service.fetchComplaintsByStatusAndEmail(status, email).subscribe({
+      next: (data) => {
+        this.complaints = data;
+      },
+      error: (error) => {
+        console.log('Error occurred while fetching complaints', error);
+      }
+    });
+  }
+
 
   // Navigate to Edit Complaint page
   goToEditComplaint(complainId: number): void {

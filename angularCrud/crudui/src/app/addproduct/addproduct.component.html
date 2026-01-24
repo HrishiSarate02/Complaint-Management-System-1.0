@@ -85,10 +85,16 @@
         name="imageOfSubject">
     </div>
 
-    <!-- Email -->
+    <!-- Email (Auto-populated & Read-only for Users, Editable for Admin) -->
     <div class="form-group">
       <label for="email" class="font-weight-bold">Email:</label>
-      <input type="email" class="form-control" id="email" required [(ngModel)]="complaint.email" name="email">
+      <input type="email" class="form-control" id="email" required [(ngModel)]="complaint.email" name="email"
+        [readonly]="!showProducts" [style.background-color]="!showProducts ? '#f0f0f0' : ''"
+        [style.cursor]="!showProducts ? 'not-allowed' : ''"
+        [title]="!showProducts ? 'Email is auto-populated from your account' : 'Enter email address'">
+      <small class="form-text text-muted" *ngIf="!showProducts">
+        <i class="bi bi-lock-fill"></i> Your email is automatically filled from your account and cannot be changed.
+      </small>
     </div>
 
     <!-- Priority Toggle -->

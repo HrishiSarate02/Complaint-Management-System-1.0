@@ -5,7 +5,7 @@ import { Complain } from '../product';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StorageService } from '../services/storage.service';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; 
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-done-complaints',
@@ -23,24 +23,43 @@ export class DoneComplaintsComponent {
     private _route: Router,
     private _activatedRoute: ActivatedRoute,
     private storageService: StorageService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.fetchComplaintsByStatus('Done');
     this.isLoggedIn = !!this.storageService.getToken();
     if (this.isLoggedIn) {
       const user = this.storageService.getUser();
       this.roles = user.roles;
       this.showProducts = this.roles.includes('ROLE_ADMIN');
+
+      // Admin sees all done complaints, User sees only theirs
+      if (this.showProducts) {
+        this.fetchComplaintsByStatus('Done');
+      } else {
+        this.fetchComplaintsByStatusAndEmail('Done', user.email);
+      }
     }
   }
 
-  // Method to fetch complaints by status
+  // Method to fetch complaints by status (Admin)
   fetchComplaintsByStatus(status: string): void {
     this._service.fetchComplaintsByStatusFromRemote(status).subscribe({
       next: (data) => {
         console.log('Complaints data received');
-        this.complaints = data; // Assign fetched data to the complaints array
+        this.complaints = data;
+      },
+      error: (error) => {
+        console.log('Error occurred while fetching complaints', error);
+      },
+    });
+  }
+
+  // Method to fetch complaints by status and email (User)
+  fetchComplaintsByStatusAndEmail(status: string, email: string): void {
+    this._service.fetchComplaintsByStatusAndEmail(status, email).subscribe({
+      next: (data) => {
+        console.log('Own complaints received');
+        this.complaints = data;
       },
       error: (error) => {
         console.log('Error occurred while fetching complaints', error);
@@ -78,7 +97,7 @@ export class DoneComplaintsComponent {
   }
   generatePDF() {
     const doc = new jsPDF();
-  
+
     // Centered Title
     const pageWidth = doc.internal.pageSize.getWidth();
     const title = 'Done Complaints';
@@ -86,12 +105,12 @@ export class DoneComplaintsComponent {
     const x = (pageWidth - textWidth) / 2;
     doc.setFontSize(18);
     doc.text(title, x, 20); // Title centered horizontally at y = 20
-  
+
     // Table Headers
     const headers = [
       ['Subject', 'Description', 'Room No.', 'Floor No.', 'Building', 'Email']
     ];
-  
+
     // Table Rows
     const rows = this.complaints.map(complaint => [
       complaint.complainSubject,
@@ -101,7 +120,7 @@ export class DoneComplaintsComponent {
       complaint.building,
       complaint.email
     ]);
-  
+
     // Create Table with Styling
     autoTable(doc, {
       head: headers,
@@ -131,10 +150,10 @@ export class DoneComplaintsComponent {
         5: { cellWidth: 40 },  // Email
       }
     });
-  
+
     // Save as PDF
     doc.save('done-complaints.pdf');
   }
-  
-  
+
+
 }

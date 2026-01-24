@@ -9,5 +9,7 @@ import com.example.demo.model.User;
 
 public interface CrudRepo extends MongoRepository<User, Long> {
 	List<User> findByStatus(String status);
+	List<User> findByEmail(String email);
+	List<User> findByStatusAndEmail(String status, String email);
 	
 }

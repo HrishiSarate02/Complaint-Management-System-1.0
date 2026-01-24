@@ -16,7 +16,7 @@ export class ProductlistComponent implements OnInit {
   searchBy: string = 'id'; // Default search criteria
   searchTerm: string = ''; // User input for search
   showProducts = false;
-  isLoggedIn= false;
+  isLoggedIn = false;
   private roles: string[] = [];
   _productlist: Complain[] = [];
   filteredProductList: Complain[] = []; // List used for filtering
@@ -26,24 +26,39 @@ export class ProductlistComponent implements OnInit {
     private _route: Router,
     private storageService: StorageService,
     private dialog: MatDialog
-  ) {}
+  ) { }
 
   ngOnInit() {
-    this._service.fetchProductListFromRemote().subscribe(
-      (data) => {
-        console.log('Response received');
-        this._productlist = data;
-        this.filteredProductList = data; // Initialize filtered list
-      },
-      (error) => console.log('Exception occurred')
-    );
-
     this.isLoggedIn = !!this.storageService.getToken();
-    
+
     if (this.isLoggedIn) {
       const user = this.storageService.getUser();
       this.roles = user.roles;
       this.showProducts = this.roles.includes('ROLE_ADMIN');
+
+      // Admin sees all complaints, User sees only their own
+      if (this.showProducts) {
+        // Admin - fetch all complaints
+        this._service.fetchProductListFromRemote().subscribe(
+          (data) => {
+            console.log('Admin: All complaints loaded');
+            this._productlist = data;
+            this.filteredProductList = data;
+          },
+          (error) => console.log('Exception occurred')
+        );
+      } else {
+        // Regular User - fetch only their complaints by email
+        const userEmail = user.email;
+        this._service.fetchProductListByEmail(userEmail).subscribe(
+          (data) => {
+            console.log('User: Own complaints loaded for:', userEmail);
+            this._productlist = data;
+            this.filteredProductList = data;
+          },
+          (error) => console.log('Exception occurred')
+        );
+      }
     }
   }
 
@@ -86,7 +101,7 @@ export class ProductlistComponent implements OnInit {
     } else if (newStatus === 'Done') {
       const dialogRef = this.dialog.open(ImageUploadDialogComponent, {
         width: '400px',
-        data: { }
+        data: {}
       });
       dialogRef.afterClosed().subscribe(result => {
         complaint.status = newStatus;
@@ -183,23 +198,23 @@ export class ProductlistComponent implements OnInit {
   }
 
 
-printComplaintList() {
-  window.print();
-  
-  // for more control
-  /*
-  const printContent = document.getElementById('print-section');
-  const WindowPrt = window.open('', '', 'width=800,height=900');
-  WindowPrt.document.write('<html><head><title>Print</title>');
-  WindowPrt.document.write('<style>@media print { .no-print { display: none; }}</style>');
-  WindowPrt.document.write('</head><body>');
-  WindowPrt.document.write(printContent.innerHTML);
-  WindowPrt.document.write('</body></html>');
-  WindowPrt.document.close();
-  WindowPrt.focus();
-  WindowPrt.print();
-  WindowPrt.close();
-  */
-}  
-  
+  printComplaintList() {
+    window.print();
+
+    // for more control
+    /*
+    const printContent = document.getElementById('print-section');
+    const WindowPrt = window.open('', '', 'width=800,height=900');
+    WindowPrt.document.write('<html><head><title>Print</title>');
+    WindowPrt.document.write('<style>@media print { .no-print { display: none; }}</style>');
+    WindowPrt.document.write('</head><body>');
+    WindowPrt.document.write(printContent.innerHTML);
+    WindowPrt.document.write('</body></html>');
+    WindowPrt.document.close();
+    WindowPrt.focus();
+    WindowPrt.print();
+    WindowPrt.close();
+    */
+  }
+
 }
