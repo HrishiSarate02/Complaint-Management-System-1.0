@@ -1,0 +1,95 @@
+/* General Container Styles */
+.container {
+  background-color: #FAF0E6;
+  /* Warm beige background - linen */
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 0 20px rgba(139, 69, 19, 0.15);
+  border: 1px solid #D2B48C;
+}
+
+/* Heading */
+h2 {
+  color: #8B4513;
+  /* Consistent brown from legacy UI */
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(139, 69, 19, 0.1);
+}
+
+/* Table Styling */
+.table {
+  background-color: #FFF8DC;
+  /* Cornsilk - warm pale yellow */
+  border: 2px solid #8B4513;
+}
+
+.table th,
+.table td {
+  color: #5A3825;
+  /* Dark brown text */
+  border-color: #D2B48C;
+}
+
+.table th {
+  background: linear-gradient(135deg, #D2B48C 0%, #F5DEB3 100%);
+  color: #5A3825;
+  font-weight: bold;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #F5DEB3;
+  /* Wheat - consistent with login page */
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: #FAEBD7;
+  /* Antique white */
+}
+
+.table-bordered {
+  border: 2px solid #8B4513;
+}
+
+.table-bordered th,
+.table-bordered td {
+  border: 1px solid #D2B48C;
+}
+
+/* Priority Box Styling */
+.high-priority-box {
+  background-color: #ffb300;
+  /* Light brown for high priority */
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.complain-id-box {
+  font-weight: bold;
+}
+
+.priority-label {
+  background-color: #e65100;
+  /* Darker brown for high priority label */
+  color: white;
+  font-weight: bold;
+  padding: 5px;
+  border-radius: 3px;
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+/* Image Styling */
+img {
+  border-radius: 5px;
+}
+
+/* Footer Styling */
+footer {
+  background-color: #3e2723;
+  /* Dark brown footer */
+  color: white;
+}
+
+footer p {
+  font-size: 14px;
+}
